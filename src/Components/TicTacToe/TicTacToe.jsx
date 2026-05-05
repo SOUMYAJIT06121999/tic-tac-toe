@@ -1,126 +1,118 @@
-import React, { useRef, useState } from 'react'
-import './TicTacToe.css'
-import cricle_icon from '../Assets/circle.png'
-import cross_icon from '../Assets/cross.png'
+import React, { useMemo, useState } from 'react';
+import './TicTacToe.css';
+import circleIcon from '../Assets/circle.png';
+import crossIcon from '../Assets/cross.png';
 
-let data = ["","","","","","","","",""]
+const WINNING_LINES = [
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
+  [0, 4, 8],
+  [2, 4, 6],
+];
+
+const EMPTY_BOARD = Array(9).fill('');
+
+const getWinner = (board) => {
+  for (const [a, b, c] of WINNING_LINES) {
+    if (board[a] && board[a] === board[b] && board[b] === board[c]) {
+      return board[a];
+    }
+  }
+  return null;
+};
 
 const TicTacToe = () => {
+  const [board, setBoard] = useState(EMPTY_BOARD);
+  const [isXTurn, setIsXTurn] = useState(true);
+  const [score, setScore] = useState({ x: 0, o: 0, draw: 0 });
 
+  const winner = useMemo(() => getWinner(board), [board]);
+  const isDraw = useMemo(() => !winner && board.every(Boolean), [board, winner]);
 
-let[count,setCount] = useState(0);
-let[lock,setLock] = useState(false);
-let titleRef = useRef(null);
-let box1 = useRef(null);
-let box2 = useRef(null);
-let box3 = useRef(null);
-let box4 = useRef(null);
-let box5 = useRef(null);
-let box6 = useRef(null);
-let box7 = useRef(null);
-let box8 = useRef(null);
-let box9 = useRef(null);
+  const statusText = winner
+    ? `Winner: ${winner.toUpperCase()}`
+    : isDraw
+      ? 'It is a draw!'
+      : `Turn: ${isXTurn ? 'X' : 'O'}`;
 
-let box_array = [box1,box2,box3,box4,box5,box6,box7,box8,box9];
+  const playMove = (index) => {
+    if (board[index] || winner) {
+      return;
+    }
 
-const toggle = (e,num) => {
-if (lock){
-  return 0;
-}
-if ( count%2===0)
-{
-  e.target.innerHTML = `<img src='${cross_icon}'>`;
-  data[num]="x";
-  setCount(++count);
-}
-else{
-  e.target.innerHTML = `<img src='${cricle_icon}'>`;
-  data[num]="o";
-  setCount(++count);
-}
-checkWin();
-}
+    const mark = isXTurn ? 'x' : 'o';
+    const nextBoard = [...board];
+    nextBoard[index] = mark;
 
-const checkWin = () => {
-  if (data[0]===data[1] && data[1]===data[2] && data[2]!=="")
-  {
-won(data[2]);
-  }
-  else if(data[3]===data[4] && data[4]===data[5] && data[5]!=="")
-  {
-    won(data[5]);
-  }
-  else if(data[6]===data[7] && data[7]===data[8] && data[8]!=="")
-  {
-    won(data[8]);
-  }
-  else if(data[0]===data[3] && data[3]===data[6] && data[6]!=="")
-  {
-    won(data[6]);
-  }
+    const nextWinner = getWinner(nextBoard);
+    const nextIsDraw = !nextWinner && nextBoard.every(Boolean);
 
-  else if(data[1]===data[4] && data[4]===data[7] && data[7]!=="")
-  {
-    won(data[7]);
-  }
-  else if(data[2]===data[5] && data[5]===data[8] && data[8]!=="")
-  {
-    won(data[8]);
-  }
-  else if(data[0]===data[4] && data[4]===data[8] && data[8]!=="")
-  {
-    won(data[8]);
-  }
-  
-  else if(data[2]===data[4] && data[4]===data[6] && data[6]!=="")
-  {
-    won(data[6]);
-  }
-}
+    if (nextWinner) {
+      setScore((prev) => ({ ...prev, [nextWinner]: prev[nextWinner] + 1 }));
+    } else if (nextIsDraw) {
+      setScore((prev) => ({ ...prev, draw: prev.draw + 1 }));
+    }
 
-const won = (winner) => {
-setLock(true);
-if(winner==="x")
-{
-  titleRef.current.innerHTML = `Congratulations: <img src=${cross_icon}>`
-}
-else
-{
-  titleRef.current.innerHTML = `Congratulations: <img src=${cricle_icon}>`
-}
-} 
+    setBoard(nextBoard);
+    setIsXTurn((prev) => !prev);
+  };
 
-const reset = () => {
-  setLock(false);
-  data = ["","","","","","","","",""]
-  titleRef.current.innerHTML = 'Tic Tac Toe <span>React</span>'
-  box_array.forEach((e)=>{
-    e.current.innerHTML = "";
-  })
-}
- return (
-  <div className='container'>
-  <h1 className="title" ref={titleRef}>Tic Tac Toe Game In <span>React</span></h1>
-      <div className="board">
-<div className="row1">
-    <div className="boxes" ref={box1} onClick={(e)=>{toggle(e,0)}}></div>
-    <div className="boxes" ref={box2} onClick={(e)=>{toggle(e,1)}}></div>
-    <div className="boxes" ref={box3} onClick={(e)=>{toggle(e,2)}}></div>
-</div>
-<div className="row2">
-    <div className="boxes" ref={box4} onClick={(e)=>{toggle(e,3)}}></div>
-    <div className="boxes" ref={box5} onClick={(e)=>{toggle(e,4)}}></div>
-    <div className="boxes" ref={box6} onClick={(e)=>{toggle(e,5)}}></div>
-</div>
-<div className="row3">
-    <div className="boxes" ref={box7} onClick={(e)=>{toggle(e,6)}}></div>
-    <div className="boxes" ref={box8} onClick={(e)=>{toggle(e,7)}}></div>
-    <div className="boxes" ref={box9} onClick={(e)=>{toggle(e,8)}}></div>
-</div>
+  const resetBoard = () => {
+    setBoard(EMPTY_BOARD);
+    setIsXTurn(true);
+  };
+
+  const resetAll = () => {
+    resetBoard();
+    setScore({ x: 0, o: 0, draw: 0 });
+  };
+
+  return (
+    <div className="container">
+      <h1 className="title">
+        Tic Tac Toe <span>React</span>
+      </h1>
+
+      <p className="status" role="status" aria-live="polite">
+        {statusText}
+      </p>
+
+      <div className="scoreboard" aria-label="scoreboard">
+        <span>X: {score.x}</span>
+        <span>O: {score.o}</span>
+        <span>Draws: {score.draw}</span>
       </div>
-      <button className="reset" onClick={reset}>Reset</button>
-    </div>
-  )
-}
 
-export default TicTacToe
+      <div className="board" role="grid" aria-label="tic tac toe board">
+        {board.map((cell, index) => (
+          <button
+            key={index}
+            className="boxes"
+            type="button"
+            role="gridcell"
+            aria-label={`Cell ${index + 1}${cell ? `, ${cell.toUpperCase()}` : ''}`}
+            onClick={() => playMove(index)}
+          >
+            {cell === 'x' && <img src={crossIcon} alt="X" />}
+            {cell === 'o' && <img src={circleIcon} alt="O" />}
+          </button>
+        ))}
+      </div>
+
+      <div className="actions">
+        <button className="reset" type="button" onClick={resetBoard}>
+          New Round
+        </button>
+        <button className="reset reset-secondary" type="button" onClick={resetAll}>
+          Reset Score
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default TicTacToe;
